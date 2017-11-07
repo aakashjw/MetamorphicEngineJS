@@ -14,10 +14,10 @@ Api.convertToAst = (code) => {
 Api.morph = (ast) => {
 
 		var body = ast.body
-		
+		console.log("main body",body)
 		    for(var line in body){
-		    	console.log("line"+line)
-				var currentLine = body[line];
+		    	console.log("line"+line+"body[line]"+JSON.stringify(body)+body[line])
+				var currentLine = body[line] || body;
 				switch(currentLine.type){
 		            case "VariableDeclaration":
 					var declarations = currentLine.declarations;
@@ -82,7 +82,35 @@ Api.morph = (ast) => {
 					break;
 					case "FunctionDeclaration":
 							var outerbody = currentLine.body;
-							Api.morph(outerbody)
+							Api.morph(outerbody);
+							
+							var body = outerbody.body;
+							console.log("body is"+JSON.stringify(body))
+							for (var i = 0; i < body.length ; i++) {
+								switch(body[i].type){
+									case "VariableDeclaration":
+									console.log("case VariableDeclaration")
+									for (var j in body[i].declarations) {
+										if(body[i].declarations[j].type == "VariableDeclarator" ){
+											for(var keys in keyset){
+												if(keyset[keys].includes(body[i].declarations[j].id.name)){
+													keyset[keys].pop();
+												}
+											}
+										}
+									}
+									break;
+									case "ReturnStatement":
+									if(keyset.hasOwnProperty(keyset[body[i].argument.name])){
+											var keyArr = keyset[body[i].argument.name]
+											body[i].argument.name =keyArr[keyArr.length-1]
+									}
+									
+									break;
+
+								} 
+							}
+
 					break;
 				}
 			}
